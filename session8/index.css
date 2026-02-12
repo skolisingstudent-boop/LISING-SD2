@@ -1,0 +1,24 @@
+*{
+    
+    margin: 0 !important;
+    padding: 0 !important;
+    box-sizing: border-box;
+}
+
+
+
+
+
+.heading{
+    color: red;
+
+}
+
+.heading-size{
+    font-size: 72px;
+}
+
+
+    .text-purple{    
+    color: purple; 
+}
