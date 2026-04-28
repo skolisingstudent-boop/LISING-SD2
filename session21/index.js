@@ -66,13 +66,16 @@ class Pokemon {
         this.level = level;
         this.maxHp = baseHp * level;
         this.hp = this.maxHp;
+        this.maxMana = mana;
         this.mana = mana;
+        this.manaRegenUses = 10;
     }
 
     tackle(target) {
-        const damage = 50;
+        let damage = 50;
         target.hp = Math.max(0, target.hp - damage);
         console.log(`${this.name} uses Tackle on ${target.name}!`);
+        this.printPostSkillState('attack', this, target);
     }
 
     skill1(target) {
@@ -100,6 +103,7 @@ class Pokemon {
         this.mana -= manaCost;
         console.log(`${this.name} uses ${skillName} on ${target.name}!`);
         console.log(`${this.name} has ${this.mana} mana left.`);
+        this.printPostSkillState('attack', this, target);
     }
 
     potion() {
@@ -109,6 +113,36 @@ class Pokemon {
             console.log(`${this.name} health: ${this.hp} HP`);
         } else {
             console.log(`${this.name} already has full HP!`);
+        }
+    }
+
+    manaRegen() {
+        let regenAmount = 15;
+        if (this.manaRegenUses <= 0) {
+            console.log(`${this.name} cannot activate mana regen anymore! No uses left.`);
+            return;
+        }
+        if (this.mana >= this.maxMana) {
+            console.log(`${this.name} already has full mana!`);
+            return;
+        }
+        this.manaRegenUses -= 1;
+        this.mana = Math.min(this.maxMana, this.mana + regenAmount);
+        console.log(`${this.name} activates Mana Regen!`);
+        console.log(`${this.name} mana: ${this.mana}/${this.maxMana}`);
+        console.log(`${this.name} has ${this.manaRegenUses} mana regen uses remaining.`);
+    }
+
+    printCurrentState(pokemon) {
+        console.log(`${pokemon.name} current state: hp ${pokemon.hp}/${pokemon.maxHp}, mana ${pokemon.mana}/${pokemon.maxMana}, regen uses ${pokemon.manaRegenUses}`);
+    }
+
+    printPostSkillState(skillType, pokemon1, pokemon2 = null) {
+        if (skillType === 'attack') {
+            this.printCurrentState(pokemon1);
+            this.printCurrentState(pokemon2);
+        } else {
+            this.printCurrentState(pokemon1);
         }
     }
 }
@@ -149,6 +183,17 @@ console.log(pikachu);
 console.log(charmander);
 
 charmander.potion();
+console.log(charmander);
+
+// Testing manaRegen function
+console.log("\n--- Testing Mana Regen ---");
+pikachu.manaRegen();
+console.log(pikachu);
+
+charmander.skill1(pikachu);
+console.log(charmander.mana);
+
+charmander.manaRegen();
 console.log(charmander);
 
 
