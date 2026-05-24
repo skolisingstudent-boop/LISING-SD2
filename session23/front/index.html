@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory Management System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            padding: 40px;
+            text-align: center;
+        }
+
+        h1 {
+            color: #1f2937;
+            font-size: 2.8em;
+            margin-bottom: 10px;
+            font-weight: 800;
+        }
+
+        .subtitle {
+            color: #4b5563;
+            font-size: 1.05em;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .search-wrapper {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 18px 20px;
+            font-size: 1.05em;
+            border: 2px solid #c7d2fe;
+            border-radius: 14px;
+            outline: none;
+            transition: all 0.3s ease;
+            background: #f8fafc;
+        }
+
+        .search-input:focus {
+            border-color: #4338ca;
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.12);
+        }
+
+        .search-input::placeholder {
+            color: #9ca3af;
+        }
+
+        .search-options-wrapper {
+            margin-top: 18px;
+            text-align: left;
+        }
+
+        .search-options-label {
+            color: #374151;
+            font-weight: 700;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .search-options {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+            max-height: 128px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        .option-btn {
+            padding: 12px 18px;
+            border: 2px solid #c7d2fe;
+            background: white;
+            color: #4f46e5;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.25s ease;
+            font-size: 0.95em;
+            min-width: 130px;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .option-btn:hover {
+            background: #4338ca;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .option-btn.active {
+            background: #4338ca;
+            color: white;
+            border-color: #4338ca;
+        }
+
+        .action-row {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .action-btn,
+        .primary-btn {
+            padding: 12px 22px;
+            border-radius: 12px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.95em;
+            font-weight: 700;
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        .action-btn {
+            background: #eef2ff;
+            color: #4338ca;
+        }
+
+        .action-btn:hover,
+        .primary-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px rgba(67, 56, 202, 0.14);
+        }
+
+        .primary-btn {
+            background: #4338ca;
+            color: white;
+        }
+
+        .add-panel {
+            margin-top: 26px;
+            padding: 24px;
+            border-radius: 18px;
+            border: 1px solid #e5e7eb;
+            background: #f9fafb;
+            text-align: left;
+            display: none;
+        }
+
+        .add-panel.show {
+            display: block;
+        }
+
+        .add-panel h3 {
+            color: #1f2937;
+            margin-bottom: 14px;
+            font-size: 1.3em;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 18px;
+            margin-bottom: 18px;
+        }
+
+        .form-field {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-field label {
+            color: #374151;
+            font-size: 0.92em;
+            font-weight: 600;
+        }
+
+        .form-field input,
+        .form-field textarea {
+            padding: 12px 14px;
+            border: 1px solid #d1d5db;
+            border-radius: 12px;
+            font-size: 0.95em;
+            outline: none;
+            background: white;
+        }
+
+        .form-field textarea {
+            min-height: 92px;
+            resize: vertical;
+        }
+
+        .add-note {
+            color: #556574;
+            font-size: 0.95em;
+            margin-top: 4px;
+        }
+
+        .results-container {
+            margin-top: 36px;
+            text-align: left;
+            display: none;
+        }
+
+        .results-container.show {
+            display: block;
+        }
+
+        .results-header {
+            font-size: 1.35em;
+            color: #1f2937;
+            font-weight: 700;
+            margin-bottom: 22px;
+            border-bottom: 3px solid #4338ca;
+            padding-bottom: 12px;
+        }
+
+        .result-item {
+            background: #ffffff;
+            padding: 22px;
+            margin-bottom: 18px;
+            border-radius: 18px;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 12px 30px rgba(15, 23, 42, 0.04);
+        }
+
+        .result-item h4 {
+            color: #4338ca;
+            margin-bottom: 10px;
+            font-size: 1.15em;
+        }
+
+        .result-meta {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .meta-block {
+            background: #f8fafc;
+            padding: 14px;
+            border-radius: 14px;
+            color: #475569;
+            line-height: 1.5;
+            border: 1px solid #e2e8f0;
+        }
+
+        .item-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .item-actions button {
+            padding: 10px 16px;
+            border-radius: 12px;
+            border: none;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            font-weight: 700;
+            color: white;
+        }
+
+        .item-actions button:hover {
+            transform: translateY(-1px);
+        }
+
+        .item-actions .edit-btn { background: #2563eb; }
+        .item-actions .delete-btn { background: #ef4444; }
+        .item-actions .stocks-btn { background: #10b981; }
+
+        .no-results {
+            text-align: center;
+            color: #6b7280;
+            padding: 24px;
+            font-size: 1.05em;
+        }
+
+        .error-message {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 14px;
+            border-radius: 12px;
+            margin-top: 18px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .loading {
+            color: #4338ca;
+            font-style: italic;
+        }
+
+        @media (max-width: 640px) {
+            .action-row { flex-direction: column; }
+            .form-grid { grid-template-columns: 1fr; }
+            .search-options { justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Inventory Management System</h1>
+        <p class="subtitle">Search the connected database and manage inventory records in real time.</p>
+
+        <div class="search-wrapper">
+            <input 
+                type="text" 
+                class="search-input" 
+                id="searchInput" 
+                placeholder="Search item name, SKU, category, brand or supplier..."
+                autocomplete="off"
+            >
+
+            <div class="search-options-wrapper">
+                <span class="search-options-label">Choose searchable schema</span>
+                <div class="search-options" id="searchOptions">
+                    <button class="option-btn active" data-type="all">Search All</button>
+                    <button class="option-btn" data-type="inventory">Inventory Items</button>
+                    <button class="option-btn" data-type="category">Categories</button>
+                    <button class="option-btn" data-type="supplier">Suppliers</button>
+                </div>
+            </div>
+
+            <div class="action-row">
+                <button class="primary-btn" id="searchButton">Search</button>
+                <button class="action-btn" id="viewResultsButton">Open Full Results Page</button>
+                <button class="action-btn" id="toggleAddForm">Add Inventory Item</button>
+            </div>
+        </div>
+
+        <div class="add-panel" id="addPanel">
+            <h3>Add New Inventory Item</h3>
+            <form id="addItemForm">
+                <div class="form-grid">
+                    <div class="form-field">
+                        <label for="itemName">Item Name</label>
+                        <input id="itemName" name="name" type="text" required>
+                    </div>
+                    <div class="form-field">
+                        <label for="productName">Product Name</label>
+                        <input id="productName" name="productName" type="text" required>
+                    </div>
+                    <div class="form-field">
+                        <label for="sku">SKU</label>
+                        <input id="sku" name="sku" type="text">
+                    </div>
+                    <div class="form-field">
+                        <label for="category">Category</label>
+                        <input id="category" name="category" type="text">
+                    </div>
+                    <div class="form-field">
+                        <label for="brand">Brand</label>
+                        <input id="brand" name="brand" type="text">
+                    </div>
+                    <div class="form-field">
+                        <label for="supplier">Supplier</label>
+                        <input id="supplier" name="supplier" type="text">
+                    </div>
+                    <div class="form-field">
+                        <label for="quantity">Quantity</label>
+                        <input id="quantity" name="quantity" type="number" min="0" value="0">
+                    </div>
+                    <div class="form-field">
+                        <label for="price">Price</label>
+                        <input id="price" name="price" type="number" step="0.01" min="0" value="0.00">
+                    </div>
+                    <div class="form-field">
+                        <label for="reorderLevel">Reorder Level</label>
+                        <input id="reorderLevel" name="reorderLevel" type="number" min="0" value="0">
+                    </div>
+                    <div class="form-field">
+                        <label for="stocks">Stocks</label>
+                        <input id="stocks" name="stocks" type="number" min="0" value="0">
+                    </div>
+                </div>
+                <button type="submit" class="primary-btn">Save New Item</button>
+                <p class="add-note">This form saves inventory records directly into the connected MongoDB database.</p>
+            </form>
+        </div>
+
+        <div class="error-message" id="errorMessage"></div>
+
+        <div class="results-container" id="resultsContainer">
+            <div class="results-header">Search results</div>
+            <div id="resultsContent"></div>
+        </div>
+    </div>
+
+    <script src="search.js"></script>
+</body>
+</html>

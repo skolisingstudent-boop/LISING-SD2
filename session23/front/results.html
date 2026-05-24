@@ -1,0 +1,112 @@
+    <!doctype html>
+    <html lang="en">
+    <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Search Results</title>
+    <style>
+        :root { color-scheme: light; }
+        body { font-family: Inter, Arial, Helvetica, sans-serif; background: #eef2ff; margin: 0; padding: 24px; }
+        .card { max-width: 1040px; margin: 0 auto; background: #ffffff; border-radius: 24px; padding: 28px; box-shadow: 0 20px 60px rgba(15, 23, 42, 0.12); }
+        .header-row { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 24px; }
+        h1 { margin: 0; font-size: clamp(1.6rem, 2vw, 2.4rem); color: #1f2937; }
+        .back, .refresh, .page-btn { border: none; border-radius: 14px; padding: 12px 18px; cursor: pointer; font-weight: 700; transition: transform .2s ease; }
+        .back { background: #6b7280; color: #ffffff; }
+        .refresh { background: #4338ca; color: #ffffff; }
+        .page-btn { background: #2563eb; color: #ffffff; }
+        .back:hover, .refresh:hover, .page-btn:hover { transform: translateY(-1px); }
+        .controls { display: grid; grid-template-columns: 1fr auto; gap: 12px; margin-bottom: 18px; }
+        .controls input, .controls select { width: 100%; padding: 14px 16px; border-radius: 16px; border: 1px solid #d1d5db; font-size: 1rem; outline: none; }
+        .controls button { background: #4338ca; color: #ffffff; border: none; padding: 14px 18px; border-radius: 16px; font-weight: 700; }
+        .list { display: grid; gap: 18px; }
+        .group { display: grid; gap: 14px; }
+        .group h3 { margin: 0; color: #111827; font-size: 1.1rem; }
+        .item { padding: 20px; border-radius: 20px; border: 1px solid #e5e7eb; background: #fbfbff; box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05); }
+        .item-title { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+        .item-title h4 { margin: 0; font-size: 1.05rem; color: #4338ca; }
+        .meta-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-top: 16px; }
+        .meta { background: #f8fafc; padding: 14px; border-radius: 16px; color: #475569; line-height: 1.6; border: 1px solid #e2e8f0; }
+        .item-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+        .item-actions button { border: none; border-radius: 14px; padding: 11px 16px; cursor: pointer; font-weight: 700; color: #ffffff; transition: transform .2s ease; }
+        .item-actions button:hover { transform: translateY(-1px); }
+        .edit-btn { background: #2563eb; }
+        .delete-btn { background: #ef4444; }
+        .stocks-btn { background: #10b981; }
+        .no-results { text-align: center; color: #475569; padding: 28px; font-size: 1.05rem; }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.45); display: none; justify-content: center; align-items: center; padding: 24px; z-index: 100; }
+        .modal-overlay.show { display: flex; }
+        .modal { width: 100%; max-width: 660px; background: white; border-radius: 24px; padding: 28px; box-shadow: 0 24px 60px rgba(15, 23, 42, 0.18); }
+        .modal h2 { margin-top: 0; }
+        .modal-form { display: grid; gap: 14px; }
+        .modal-form label { display: block; font-size: 0.92rem; color: #374151; margin-bottom: 6px; }
+        .modal-form input, .modal-form textarea { width: 100%; padding: 12px 14px; border-radius: 14px; border: 1px solid #d1d5db; outline: none; }
+        .modal-footer { display: flex; justify-content: flex-end; gap: 12px; margin-top: 18px; flex-wrap: wrap; }
+        .modal-footer button { padding: 12px 18px; border-radius: 14px; border: none; cursor: pointer; font-weight: 700; }
+        .modal-cancel { background: #e5e7eb; color: #111827; }
+        .modal-save { background: #4338ca; color: #fff; }
+    </style>
+    </head>
+    <body>
+    <div class="card">
+        <div class="header-row">
+            <div>
+                <h1 id="title">Search Results</h1>
+                <p style="color:#6b7280; margin: 8px 0 0;">Results are loaded from the connected MongoDB database and grouped by schema.</p>
+            </div>
+            <div style="display:flex;gap:12px;flex-wrap:wrap;">
+                <button id="backBtn" class="back">Back</button>
+                <button id="refreshBtn" class="refresh">Refresh</button>
+                <button id="newSearchBtn" class="page-btn">New Search</button>
+            </div>
+        </div>
+
+        <div class="controls">
+            <input id="filterInput" type="search" placeholder="Filter results client-side" />
+            <select id="schemaSelect">
+                <option value="all">Search All</option>
+                <option value="inventory">Inventory Items</option>
+                <option value="category">Categories</option>
+                <option value="supplier">Suppliers</option>
+            </select>
+            <button id="applyFilter">Apply Filter</button>
+        </div>
+
+        <div id="results" class="list"></div>
+    </div>
+
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <h2 id="modalTitle">Edit Item</h2>
+            <form id="editForm" class="modal-form">
+                <input type="hidden" id="editItemId" />
+                <label for="editName">Item Name</label>
+                <input id="editName" type="text" placeholder="Item name">
+                <label for="editProductName">Product Name</label>
+                <input id="editProductName" type="text" placeholder="Product name">
+                <label for="editSKU">SKU</label>
+                <input id="editSKU" type="text" placeholder="SKU">
+                <label for="editCategory">Category</label>
+                <input id="editCategory" type="text" placeholder="Category">
+                <label for="editBrand">Brand</label>
+                <input id="editBrand" type="text" placeholder="Brand">
+                <label for="editSupplier">Supplier</label>
+                <input id="editSupplier" type="text" placeholder="Supplier">
+                <label for="editQuantity">Quantity</label>
+                <input id="editQuantity" type="number" min="0" placeholder="Quantity">
+                <label for="editPrice">Price</label>
+                <input id="editPrice" type="number" step="0.01" min="0" placeholder="Price">
+                <label for="editReorder">Reorder Level</label>
+                <input id="editReorder" type="number" min="0" placeholder="Reorder level">
+                <label for="editStocks">Stocks</label>
+                <input id="editStocks" type="number" min="0" placeholder="Stocks">
+                <div class="modal-footer">
+                    <button type="button" class="modal-cancel" id="closeModalBtn">Cancel</button>
+                    <button type="submit" class="modal-save">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="results.js"></script>
+    </body>
+    </html>
